@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 — QuickPaste</title>
+  <meta name="description" content="QuickPaste — 极速跨设备剪贴板，随时随地同步你的文本和链接" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>" />
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">📋</div>
+      <div>
+        <h1>QuickPaste</h1>
+        <p>极速跨设备剪贴板</p>
+      </div>
+    </div>
+
+    <div class="auth-tabs" role="tablist">
+      <button id="tab-login" class="auth-tab active" role="tab" aria-selected="true">登录</button>
+      <button id="tab-register" class="auth-tab" role="tab" aria-selected="false">注册</button>
+    </div>
+
+    <form id="auth-form" autocomplete="on" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="username">用户名</label>
+        <input
+          id="username"
+          class="form-input"
+          type="text"
+          name="username"
+          autocomplete="username"
+          placeholder="输入用户名"
+          required
+          autofocus
+        />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">密码</label>
+        <input
+          id="password"
+          class="form-input"
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          placeholder="输入密码"
+          required
+        />
+      </div>
+
+      <div id="error-msg" class="error-msg" role="alert"></div>
+
+      <button id="submit-btn" type="submit" class="btn btn-primary" style="margin-top:1.25rem">
+        <span id="btn-text">登录</span>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('auth-form');
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    const errorMsg = document.getElementById('error-msg');
+    const pwdInput = document.getElementById('password');
+
+    let mode = 'login';
+
+    function setMode(m) {
+      mode = m;
+      tabLogin.classList.toggle('active', m === 'login');
+      tabRegister.classList.toggle('active', m === 'register');
+      tabLogin.setAttribute('aria-selected', m === 'login');
+      tabRegister.setAttribute('aria-selected', m === 'register');
+      btnText.textContent = m === 'login' ? '登录' : '注册';
+      pwdInput.autocomplete = m === 'login' ? 'current-password' : 'new-password';
+      errorMsg.classList.remove('show');
+    }
+
+    tabLogin.addEventListener('click', () => setMode('login'));
+    tabRegister.addEventListener('click', () => setMode('register'));
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) return;
+
+      submitBtn.disabled = true;
+      btnText.textContent = mode === 'login' ? '登录中…' : '注册中…';
+      errorMsg.classList.remove('show');
+
+      try {
+        const res = await fetch(`/api/auth/${mode}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorMsg.textContent = data.error || '操作失败，请重试';
+          errorMsg.classList.add('show');
+          return;
+        }
+
+        // Success — redirect to app
+        window.location.href = '/';
+      } catch {
+        errorMsg.textContent = '网络错误，请检查连接';
+        errorMsg.classList.add('show');
+      } finally {
+        submitBtn.disabled = false;
+        btnText.textContent = mode === 'login' ? '登录' : '注册';
+      }
+    });
+  </script>
+</body>
+</html>
