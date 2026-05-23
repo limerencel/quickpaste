@@ -1,10 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>分享内容 — QuickPaste</title>
-  <meta name="description" content="通过 QuickPaste 分享的内容" />
+  <title>SHARED CLIP — QUICKPASTE</title>
+  <meta name="description" content="SHARED CLIP FROM QUICKPASTE." />
+  
+  <!-- Preconnect and Import Serif Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  
   <link rel="stylesheet" href="/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>" />
 </head>
@@ -14,7 +20,7 @@
       <div class="share-card-header">
         <div class="logo-icon">📋</div>
         <div>
-          <div class="share-card-title">共享内容</div>
+          <div class="share-card-title">SHARED CONTENT</div>
           <div class="share-card-subtitle" id="share-time"></div>
         </div>
       </div>
@@ -26,15 +32,15 @@
       </div>
 
       <div class="share-actions">
-        <button id="copy-btn" class="btn btn-primary" style="flex:1; max-width: 160px;">
-          复制内容
+        <button id="copy-btn" class="btn btn-primary" style="flex: 1; max-width: 180px;">
+          COPY CONTENT
         </button>
-        <div id="copy-feedback" style="font-size:0.85rem; color: var(--green); display:none;">✓ 已复制</div>
+        <div id="copy-feedback" style="font-size: 0.85rem; color: var(--green); display: none;">COPIED</div>
       </div>
     </div>
 
     <p class="share-brand">
-      由 <a href="/">QuickPaste</a> 驱动 · <a href="/login.html">创建自己的剪贴板</a>
+      POWERED BY <a href="/">QUICKPASTE</a> · <a href="/login.html">CREATE YOUR OWN CLIPBOARD</a>
     </p>
   </div>
 
@@ -56,7 +62,13 @@
 
     function formatTime(iso) {
       try {
-        return new Date(iso).toLocaleString('zh-CN', { dateStyle: 'medium', timeStyle: 'short' });
+        return new Date(iso).toLocaleString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          hour12: false 
+        }).toUpperCase();
       } catch { return ''; }
     }
 
@@ -65,7 +77,7 @@
         const res = await fetch(`/api/share/view/${shareId}`);
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          contentEl.innerHTML = `<span style="color:var(--text-muted)">${data.error || '内容不存在或已被删除'}</span>`;
+          contentEl.innerHTML = `<span style="color:var(--text-muted)">${data.error ? data.error.toUpperCase() : 'CONTENT NOT FOUND OR HAS BEEN DELETED'}</span>`;
           copyBtn.disabled = true;
           return;
         }
@@ -74,7 +86,7 @@
         contentEl.innerHTML = linkify(data.content);
         timeEl.textContent = formatTime(data.created_at);
       } catch {
-        contentEl.innerHTML = `<span style="color:var(--text-muted)">加载失败，请刷新重试</span>`;
+        contentEl.innerHTML = `<span style="color:var(--text-muted)">FAILED TO LOAD. PLEASE REFRESH AND TRY AGAIN.</span>`;
       }
     }
 
@@ -82,12 +94,16 @@
       if (!clipContent) return;
       try {
         await navigator.clipboard.writeText(clipContent);
-        copyBtn.textContent = '✓ 已复制';
-        copyBtn.style.background = 'var(--green)';
+        copyBtn.textContent = 'COPIED';
+        copyBtn.style.background = 'var(--green-bg)';
+        copyBtn.style.color = 'var(--green)';
+        copyBtn.style.borderColor = 'var(--green)';
         copyFeedback.style.display = 'none';
         setTimeout(() => {
-          copyBtn.textContent = '复制内容';
+          copyBtn.textContent = 'COPY CONTENT';
           copyBtn.style.background = '';
+          copyBtn.style.color = '';
+          copyBtn.style.borderColor = '';
         }, 2000);
       } catch {
         // Fallback

@@ -1,5 +1,6 @@
 // app.js — QuickPaste main client logic
 // Handles: auth check, clip rendering, SSE real-time sync, share links, copy
+// Aesthetic: Warm Parchment Brutalist (ALL UPPERCASE ENGLISH UI)
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let clips = [];
@@ -20,7 +21,7 @@ const toastContainer = document.getElementById('toast-container');
 function toast(msg, type = '') {
   const el = document.createElement('div');
   el.className = `toast${type ? ' ' + type : ''}`;
-  el.textContent = msg;
+  el.textContent = msg.toUpperCase(); // Force uppercase toast notifications
   toastContainer.appendChild(el);
   setTimeout(() => el.remove(), 2100);
 }
@@ -40,10 +41,16 @@ function linkify(text) {
 // ── Time format ───────────────────────────────────────────────────────────────
 function relativeTime(iso) {
   const diff = Date.now() - new Date(iso).getTime();
-  if (diff < 60000) return '刚刚';
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
-  return new Date(iso).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  if (diff < 60000) return 'JUST NOW';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}M AGO`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}H AGO`;
+  return new Date(iso).toLocaleString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: false 
+  }).toUpperCase();
 }
 
 // ── API helpers ───────────────────────────────────────────────────────────────
@@ -68,7 +75,7 @@ function renderClips() {
     clipsList.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">📋</div>
-        <p>还没有内容<br/>在上方粘贴你想同步的文本或链接</p>
+        <p>NO CLIPS FOUND<br/>PASTE ANYTHING ABOVE TO SYNC ACROSS DEVICES</p>
       </div>`;
     clipsCount.classList.add('hidden');
     return;
@@ -96,12 +103,12 @@ function renderClips() {
 
 function renderClipCard(clip) {
   const shared = clip.share_id
-    ? `<span class="share-badge visible" title="已分享">🔗 已分享</span>`
+    ? `<span class="share-badge visible" title="SHARED CLIP">🔗 SHARED</span>`
     : `<span class="share-badge"></span>`;
 
   const shareBtn = clip.share_id
-    ? `<button class="btn-icon danger" data-unshare="${clip.id}" title="取消分享" aria-label="取消分享">🔗</button>`
-    : `<button class="btn-icon" data-share="${clip.id}" title="生成分享链接" aria-label="分享">
+    ? `<button class="btn-icon danger" data-unshare="${clip.id}" title="REVOKE SHARE" aria-label="REVOKE SHARE">🔗</button>`
+    : `<button class="btn-icon" data-share="${clip.id}" title="SHARE CLIP" aria-label="SHARE CLIP">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
@@ -116,13 +123,13 @@ function renderClipCard(clip) {
         ${shared}
       </div>
       <div class="clip-actions">
-        <button class="btn-icon" data-copy="${escAttr(clip.content)}" title="复制" aria-label="复制内容">
+        <button class="btn-icon" data-copy="${escAttr(clip.content)}" title="COPY CONTENT" aria-label="COPY CONTENT">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
           </svg>
         </button>
         ${shareBtn}
-        <button class="btn-icon danger" data-delete="${clip.id}" title="删除" aria-label="删除此条">
+        <button class="btn-icon danger" data-delete="${clip.id}" title="DELETE CLIP" aria-label="DELETE CLIP">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
           </svg>
@@ -156,7 +163,7 @@ async function copyClip(content, btn) {
   const originalHTML = btn.innerHTML;
   btn.innerHTML = '✓';
   btn.classList.add('success');
-  toast('已复制到剪贴板', 'success');
+  toast('copied to clipboard', 'success');
   setTimeout(() => { btn.innerHTML = originalHTML; btn.classList.remove('success'); }, 1500);
 }
 
@@ -166,14 +173,14 @@ async function sendClip() {
   if (!content) return;
 
   sendBtn.disabled = true;
-  sendBtn.innerHTML = `<div class="spinner" style="width:14px;height:14px;border-width:2px"></div>`;
+  sendBtn.innerHTML = `<div class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></div> SENDING`;
 
   try {
     const res = await api('POST', '/api/clips', { content });
     if (!res) return;
     if (!res.ok) {
       const data = await res.json();
-      toast(data.error || '发送失败', 'error');
+      toast(data.error ? data.error.toUpperCase() : 'send failed', 'error');
       return;
     }
     const clip = await res.json();
@@ -184,12 +191,12 @@ async function sendClip() {
       clips.unshift(clip);
       renderClips();
     }
-    toast('已发送', 'success');
+    toast('sent successfully', 'success');
   } catch {
-    toast('网络错误', 'error');
+    toast('network error', 'error');
   } finally {
     sendBtn.disabled = false;
-    sendBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> 发送`;
+    sendBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> SEND`;
   }
 }
 
@@ -197,16 +204,16 @@ async function sendClip() {
 async function deleteClip(clipId) {
   const res = await api('DELETE', `/api/clips/${clipId}`);
   if (!res) return;
-  if (!res.ok) { toast('删除失败', 'error'); return; }
+  if (!res.ok) { toast('delete failed', 'error'); return; }
 
   clips = clips.filter(c => c.id !== clipId);
   // Animate removal
   const card = clipsList.querySelector(`[data-id="${clipId}"]`);
   if (card) {
-    card.style.transition = 'opacity 0.15s, transform 0.15s';
+    card.style.transition = 'opacity 0.1s, transform 0.1s';
     card.style.opacity = '0';
-    card.style.transform = 'translateX(8px)';
-    setTimeout(() => renderClips(), 160);
+    card.style.transform = 'translateY(4px)';
+    setTimeout(() => renderClips(), 110);
   } else {
     renderClips();
   }
@@ -214,6 +221,7 @@ async function deleteClip(clipId) {
 
 // ── Share clip ────────────────────────────────────────────────────────────────
 async function shareClip(clipId, btn) {
+  const originalHTML = btn.innerHTML;
   btn.innerHTML = `<div class="spinner" style="width:12px;height:12px;border-width:2px"></div>`;
   btn.disabled = true;
 
@@ -221,7 +229,7 @@ async function shareClip(clipId, btn) {
     const res = await api('POST', `/api/share/${clipId}`);
     if (!res) return;
     const data = await res.json();
-    if (!res.ok) { toast(data.error || '分享失败', 'error'); return; }
+    if (!res.ok) { toast(data.error ? data.error.toUpperCase() : 'share failed', 'error'); return; }
 
     // Update local clip
     const clip = clips.find(c => c.id === clipId);
@@ -231,7 +239,7 @@ async function shareClip(clipId, btn) {
     // Copy share URL to clipboard
     const shareUrl = `${location.origin}/s/${data.shareId}`;
     await navigator.clipboard.writeText(shareUrl).catch(() => {});
-    toast('分享链接已复制 🔗', 'success');
+    toast('share link copied 🔗', 'success');
   } finally {
     btn.disabled = false;
   }
@@ -241,12 +249,12 @@ async function shareClip(clipId, btn) {
 async function unshareClip(clipId) {
   const res = await api('DELETE', `/api/share/${clipId}`);
   if (!res) return;
-  if (!res.ok) { toast('操作失败', 'error'); return; }
+  if (!res.ok) { toast('action failed', 'error'); return; }
 
   const clip = clips.find(c => c.id === clipId);
   if (clip) clip.share_id = null;
   renderClips();
-  toast('已取消分享');
+  toast('share revoked', 'success');
 }
 
 // ── Load clips ────────────────────────────────────────────────────────────────
@@ -257,7 +265,7 @@ async function loadClips() {
     clips = await res.json();
     renderClips();
   } catch {
-    clipsList.innerHTML = `<div class="empty-state"><p style="color:var(--red)">加载失败，请刷新页面</p></div>`;
+    clipsList.innerHTML = `<div class="empty-state"><p style="color:var(--red)">LOAD FAILED. PLEASE REFRESH PAGE.</p></div>`;
   }
 }
 
@@ -269,7 +277,7 @@ function connectSSE() {
 
   sseSource.onopen = () => {
     statusDot.className = 'status-dot connected';
-    statusDot.title = '已连接（实时同步中）';
+    statusDot.title = 'CONNECTED (REAL-TIME SYNC)';
     if (sseRetryTimer) { clearTimeout(sseRetryTimer); sseRetryTimer = null; }
   };
 
@@ -282,7 +290,7 @@ function connectSSE() {
 
   sseSource.onerror = () => {
     statusDot.className = 'status-dot error';
-    statusDot.title = '连接断开，重连中…';
+    statusDot.title = 'DISCONNECTED, RECONNECTING...';
     sseSource.close();
     sseRetryTimer = setTimeout(connectSSE, 3000);
   };
@@ -311,7 +319,7 @@ function handleSSEEvent(event) {
 // ── Auto-resize textarea ──────────────────────────────────────────────────────
 clipInput.addEventListener('input', () => {
   clipInput.style.height = '';
-  clipInput.style.height = Math.min(clipInput.scrollHeight, 240) + 'px';
+  clipInput.style.height = Math.min(clipInput.scrollHeight, 260) + 'px';
 });
 
 // ── Send events ───────────────────────────────────────────────────────────────

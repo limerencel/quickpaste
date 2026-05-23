@@ -1,10 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuickPaste — 极速跨设备剪贴板</title>
-  <meta name="description" content="你的极速跨设备剪贴板。随时随地同步文本和链接。" />
+  <title>QUICKPASTE — ULTRA-FAST CLIPBOARD</title>
+  <meta name="description" content="QUICKPASTE - ULTRA-FAST CROSS-DEVICE SYNC CLIPBOARD." />
+  
+  <!-- Preconnect and Import Serif Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  
   <link rel="stylesheet" href="/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>" />
 </head>
@@ -14,12 +20,12 @@
     <header class="app-header">
       <div class="header-logo">
         <div class="logo-icon">📋</div>
-        <span>QuickPaste</span>
+        <span>QUICKPASTE</span>
       </div>
       <div class="header-right">
-        <div id="status-dot" class="status-dot" title="连接状态"></div>
+        <div id="status-dot" class="status-dot" title="CONNECTION STATUS"></div>
         <span id="username-label" class="username-label"></span>
-        <button id="logout-btn" class="btn btn-ghost" title="退出登录">退出</button>
+        <button id="logout-btn" class="btn btn-ghost" title="LOGOUT SYSTEM">LOGOUT</button>
       </div>
     </header>
 
@@ -29,18 +35,18 @@
         <textarea
           id="clip-input"
           class="clip-textarea"
-          placeholder="粘贴链接、文字、任何内容…  (Ctrl+Enter 发送)"
+          placeholder="PASTE URL, TEXT, OR CODE HERE... (CTRL+ENTER TO SEND)"
           autocomplete="off"
           spellcheck="false"
         ></textarea>
         <div class="input-actions">
-          <span class="input-hint">Ctrl+Enter 快速发送</span>
+          <span class="input-hint">PRESS CTRL+ENTER TO SEND</span>
           <button id="send-btn" class="btn-send">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
             </svg>
-            发送
+            SEND
           </button>
         </div>
       </div>
@@ -48,7 +54,7 @@
 
     <!-- Clips List -->
     <div class="clips-header">
-      <span class="clips-title">剪贴板</span>
+      <span class="clips-title">CLIPBOARD INDEX</span>
       <span id="clips-count" class="clips-count hidden"></span>
     </div>
 
