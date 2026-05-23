@@ -39,12 +39,27 @@ function linkify(text) {
 }
 
 // ── Time format ───────────────────────────────────────────────────────────────
+function parseDateUTC(dateStr) {
+  if (typeof dateStr === 'string') {
+    let normalized = dateStr.trim();
+    if (!normalized.includes('T') && normalized.includes(' ')) {
+      normalized = normalized.replace(' ', 'T');
+    }
+    if (!normalized.includes('Z') && !normalized.match(/[+-]\d{2}:\d{2}$/)) {
+      normalized += 'Z';
+    }
+    return new Date(normalized);
+  }
+  return new Date(dateStr);
+}
+
 function relativeTime(iso) {
-  const diff = Date.now() - new Date(iso).getTime();
+  const parsed = parseDateUTC(iso);
+  const diff = Date.now() - parsed.getTime();
   if (diff < 60000) return 'JUST NOW';
   if (diff < 3600000) return `${Math.floor(diff / 60000)}M AGO`;
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}H AGO`;
-  return new Date(iso).toLocaleString('en-US', { 
+  return parsed.toLocaleString('en-US', { 
     month: 'short', 
     day: 'numeric', 
     hour: '2-digit', 

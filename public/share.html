@@ -60,9 +60,23 @@
         .replace(urlReg, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
     }
 
+    function parseDateUTC(dateStr) {
+      if (typeof dateStr === 'string') {
+        let normalized = dateStr.trim();
+        if (!normalized.includes('T') && normalized.includes(' ')) {
+          normalized = normalized.replace(' ', 'T');
+        }
+        if (!normalized.includes('Z') && !normalized.match(/[+-]\d{2}:\d{2}$/)) {
+          normalized += 'Z';
+        }
+        return new Date(normalized);
+      }
+      return new Date(dateStr);
+    }
+
     function formatTime(iso) {
       try {
-        return new Date(iso).toLocaleString('en-US', { 
+        return parseDateUTC(iso).toLocaleString('en-US', { 
           month: 'short', 
           day: 'numeric', 
           hour: '2-digit', 
