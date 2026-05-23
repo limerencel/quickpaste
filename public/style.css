@@ -1,7 +1,39 @@
 /* style.css — QuickPaste Design System */
 /* Theme: Warm Parchment Brutalist (暖黄羊皮纸新粗野主义) */
-/* Fonts: Courier Prime (Typewriter Serif) + Noto Serif SC (思源宋体) */
+/* Fonts: Local Courier Prime (Typewriter Serif) + System Built-in Serifs */
 /* Absolutely zero rounded corners. Strong sharp outlines and solid block shadows. */
+
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/courier-prime-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/courier-prime-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/courier-prime-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('/fonts/courier-prime-bolditalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
 
 :root {
   --bg: #f4ecd8;               /* Warm parchment paper */
@@ -35,7 +67,7 @@ html {
 }
 
 body {
-  font-family: 'Courier Prime', 'Noto Serif SC', serif;
+  font-family: 'Courier Prime', 'Songti SC', 'SimSun', 'STSong', serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100dvh;
@@ -286,7 +318,7 @@ body::before {
   outline: none;
   color: var(--text);
   font-size: 0.95rem;
-  font-family: 'Noto Serif SC', 'Courier Prime', serif;
+  font-family: 'Songti SC', 'SimSun', 'STSong', 'Courier Prime', serif;
   resize: none;
   line-height: 1.6;
 }
@@ -408,7 +440,7 @@ body::before {
   color: var(--text);
   word-break: break-all;
   white-space: pre-wrap;
-  font-family: 'Noto Serif SC', 'Courier Prime', serif;
+  font-family: 'Songti SC', 'SimSun', 'STSong', 'Courier Prime', serif;
 }
 
 .clip-content a {
@@ -660,7 +692,7 @@ body::before {
   color: var(--text);
   word-break: break-all;
   white-space: pre-wrap;
-  font-family: 'Noto Serif SC', 'Courier Prime', serif;
+  font-family: 'Songti SC', 'SimSun', 'STSong', 'Courier Prime', serif;
 }
 
 .share-content a {
