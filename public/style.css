@@ -3,8 +3,6 @@
 /* Fonts: Courier Prime (Typewriter Serif) + Noto Serif SC (思源宋体) */
 /* Absolutely zero rounded corners. Strong sharp outlines and solid block shadows. */
 
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Serif+SC:wght@400;500;700;900&display=swap');
-
 :root {
   --bg: #f4ecd8;               /* Warm parchment paper */
   --bg-darker: #ebdcb9;        /* Slightly darker warm parchment for tracks */
