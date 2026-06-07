@@ -6,6 +6,7 @@
 let clips = [];
 let sseSource = null;
 let sseRetryTimer = null;
+let editingClipId = null;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const clipInput = document.getElementById('clip-input');
@@ -114,9 +115,32 @@ function renderClips() {
   clipsList.querySelectorAll('[data-unshare]').forEach(btn => {
     btn.addEventListener('click', () => unshareClip(parseInt(btn.dataset.unshare)));
   });
+  clipsList.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => startEdit(parseInt(btn.dataset.edit)));
+  });
+  clipsList.querySelectorAll('[data-save]').forEach(btn => {
+    btn.addEventListener('click', () => saveEdit(parseInt(btn.dataset.save)));
+  });
+  clipsList.querySelectorAll('[data-discard]').forEach(btn => {
+    btn.addEventListener('click', () => discardEdit());
+  });
 }
 
 function renderClipCard(clip) {
+  const isEditing = clip.id === editingClipId;
+  if (isEditing) {
+    return `<div class="clip-card editing" data-id="${clip.id}">
+      <textarea class="edit-textarea" id="edit-textarea-${clip.id}" autocomplete="off" spellcheck="false">${escTextarea(clip.content)}</textarea>
+      <div class="clip-footer">
+        <span class="clip-time">EDITING CLIP</span>
+        <div class="clip-actions">
+          <button class="btn btn-sm" data-save="${clip.id}" title="SAVE CHANGES">SAVE</button>
+          <button class="btn btn-sm btn-ghost" data-discard="${clip.id}" title="DISCARD CHANGES">DISCARD</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
   const shared = clip.share_id
     ? `<span class="share-badge visible" title="SHARED CLIP">🔗 SHARED</span>`
     : `<span class="share-badge"></span>`;
@@ -138,6 +162,11 @@ function renderClipCard(clip) {
         ${shared}
       </div>
       <div class="clip-actions">
+        <button class="btn-icon" data-edit="${clip.id}" title="EDIT CONTENT" aria-label="EDIT CONTENT">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </button>
         <button class="btn-icon" data-copy="${escAttr(clip.content)}" title="COPY CONTENT" aria-label="COPY CONTENT">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
@@ -156,6 +185,15 @@ function renderClipCard(clip) {
 
 function escAttr(str) {
   return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function escTextarea(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ── Copy ──────────────────────────────────────────────────────────────────────
@@ -231,6 +269,77 @@ async function deleteClip(clipId) {
     setTimeout(() => renderClips(), 110);
   } else {
     renderClips();
+  }
+}
+
+// ── Edit clip ─────────────────────────────────────────────────────────────────
+function startEdit(clipId) {
+  editingClipId = clipId;
+  renderClips();
+
+  // Focus and adjust height of the textarea
+  const ta = document.getElementById(`edit-textarea-${clipId}`);
+  if (ta) {
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.style.height = '';
+    ta.style.height = Math.min(ta.scrollHeight, 260) + 'px';
+    ta.addEventListener('input', () => {
+      ta.style.height = '';
+      ta.style.height = Math.min(ta.scrollHeight, 260) + 'px';
+    });
+  }
+}
+
+function discardEdit() {
+  editingClipId = null;
+  renderClips();
+}
+
+async function saveEdit(clipId) {
+  const ta = document.getElementById(`edit-textarea-${clipId}`);
+  if (!ta) return;
+  const newContent = ta.value.trim();
+  if (!newContent) {
+    toast('content cannot be empty', 'error');
+    return;
+  }
+
+  const saveBtn = clipsList.querySelector(`[data-save="${clipId}"]`);
+  const discardBtn = clipsList.querySelector(`[data-discard="${clipId}"]`);
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'SAVING...';
+  }
+  if (discardBtn) discardBtn.disabled = true;
+  ta.disabled = true;
+
+  try {
+    const res = await api('PUT', `/api/clips/${clipId}`, { content: newContent });
+    if (!res) return;
+    if (!res.ok) {
+      const data = await res.json();
+      toast(data.error ? data.error.toUpperCase() : 'update failed', 'error');
+      return;
+    }
+    const updated = await res.json();
+
+    const idx = clips.findIndex(c => c.id === clipId);
+    if (idx !== -1) {
+      clips[idx] = updated;
+    }
+    editingClipId = null;
+    renderClips();
+    toast('updated successfully', 'success');
+  } catch {
+    toast('network error', 'error');
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'SAVE';
+    }
+    if (discardBtn) discardBtn.disabled = false;
+    if (ta) ta.disabled = false;
   }
 }
 
